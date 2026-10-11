@@ -13,10 +13,3 @@ data class ExtraDetailUiState(
     val isLoadingInfo: Boolean = false,
     val error: String? = null
 )
-
-data class ApiExtraInfo(
-    val apiInfo: Any? = null,
-    val selectedTicket: Ticket? = null,
-    val isLoadingInfo: Boolean = false,
-    val error: String? = null
-)

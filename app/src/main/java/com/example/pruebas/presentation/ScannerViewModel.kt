@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pruebas.data.ticketFromBarCode
 import com.example.pruebas.data.ticketFromQrCode
-import com.example.pruebas.domain.ApiRepo
 import com.example.pruebas.domain.LotteryDatabaseRepo
 import com.example.pruebas.domain.ScannerRepo
 import com.example.pruebas.domain.WebViewRepo
@@ -18,8 +17,7 @@ import kotlinx.coroutines.launch
 class ScannerViewModel(
     private val scannerRepo: ScannerRepo,
     private val webViewRepo: WebViewRepo,
-    private val dbRepo: LotteryDatabaseRepo,
-     private val apiRepo: ApiRepo
+    private val dbRepo: LotteryDatabaseRepo
 ) : ViewModel() {
 
     var state by mutableStateOf(ScannerUiState())
@@ -42,9 +40,8 @@ class ScannerViewModel(
                             dbRepo.createTicket(qrTicket)
                             Log.d("startScanning", "Ticket QR: $qrTicket")
                         } else if (data.length == 20) {
-                            val barcodeTicket = ticketFromBarCode(data, webViewRepo, apiRepo)
+                            val barcodeTicket = ticketFromBarCode(data, webViewRepo)
                             dbRepo.createTicket(barcodeTicket)
-                            //ticketFromBarCode(data, webViewRepo, networkRepo)
                             Log.d("startScanning", "Ticket BarCode: $barcodeTicket")
                         } else {
                             state = state.copy(error = "Error al crear el ticket")

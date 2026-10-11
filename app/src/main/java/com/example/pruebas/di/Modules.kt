@@ -4,14 +4,11 @@ import android.app.Application
 import android.view.View
 import android.webkit.WebView
 import androidx.room3.Room
-import com.example.pruebas.BuildConfig
 import com.example.pruebas.data.BalanceRepoImpl
 import com.example.pruebas.data.ScannerRepoImpl
 import com.example.pruebas.data.db.AppDatabase
 import com.example.pruebas.data.db.LotteryDatabaseRepoImpl
-import com.example.pruebas.data.network.api.ApiRepoImpl
 import com.example.pruebas.data.network.webView.WebViewRepoImpl
-import com.example.pruebas.domain.ApiRepo
 import com.example.pruebas.domain.BalanceRepo
 import com.example.pruebas.domain.LotteryDatabaseRepo
 import com.example.pruebas.domain.ScannerRepo
@@ -25,13 +22,6 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.defaultRequest
-import io.ktor.client.request.header
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
@@ -62,14 +52,13 @@ val viewModelModule = module {
     viewModelOf(::ScannerViewModel)
     viewModelOf(::JackpotScreenViewModel)
     viewModel { [ticketId: String] -> DetailViewModel(ticketId = ticketId, webViewRepo = get(), dbRepo = get()) }
-    viewModel { [ticketId: String] -> ExtraDetailViewModel(ticketId = ticketId, webViewRepo = get(), apiRepo = get(), dbRepo = get()) }
+    viewModel { [ticketId: String] -> ExtraDetailViewModel(ticketId = ticketId, webViewRepo = get(), dbRepo = get()) }
 }
 
 val repositoryModule = module {
     singleOf(::LotteryDatabaseRepoImpl) bind LotteryDatabaseRepo::class
     singleOf(::BalanceRepoImpl) bind BalanceRepo::class
     singleOf(::WebViewRepoImpl) bind WebViewRepo::class
-    singleOf(::ApiRepoImpl) bind ApiRepo::class
 }
 
 val databaseModule = module {
@@ -88,25 +77,6 @@ val databaseModule = module {
 }
 
 val networkModule = module {
-
-    single {
-        HttpClient(CIO) {
-            install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                    coerceInputValues = true
-                    prettyPrint = true
-                })
-            }
-            defaultRequest {
-                url("https://api.loteriasapi.com/api/v1/")
-
-                header("Authorization", "Bearer ${BuildConfig.LOTTERY_API_KEY}")
-            }
-        }
-
-    }
-
     single {
         WebView(get()).apply {
             settings.javaScriptEnabled = true

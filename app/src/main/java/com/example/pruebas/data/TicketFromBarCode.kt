@@ -1,13 +1,11 @@
 package com.example.pruebas.data
 
-import com.example.pruebas.domain.ApiRepo
 import com.example.pruebas.domain.Ticket
 import com.example.pruebas.domain.WebViewRepo
 
 suspend fun ticketFromBarCode(
     rawData: String,
     webViewRepo: WebViewRepo,
-    apiRepo: ApiRepo
 ): Ticket {
 
     val id = rawData.take(20)
@@ -38,26 +36,5 @@ suspend fun ticketFromBarCode(
         cierre = missingInfo?.cierre ?: "",
         apertura = missingInfo?.apertura ?: ""
     )
-
-//    val missingInfoApi = apiRepo.getMissingDataNacional(numSorteo)
-//
-//    return Ticket(
-//        id = id,
-//        idSorteo = missingInfoApi?.drawId ?: "",
-//        cdc = missingInfoApi?.drawId?.take(5) ?: "",
-//        gameId = "LNAC",
-//        name = "Loteria Nacional",
-//        numeroSorteo = numSorteo,
-//        fecha = missingInfoApi?.fecha ?: "",
-//        gameStatus = missingInfoApi?.status ?: "",
-//        prize = "0.0",
-//        betPrice = missingInfoApi?.precio ?: "",
-//        isWinner = false,
-//        numDecimo = numDecimo,
-//        serie = serie,
-//        fraccion = fraccion,
-//        cierre = missingInfoApi?.cierre
-//    )
-
 }
 

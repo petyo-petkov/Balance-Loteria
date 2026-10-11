@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pruebas.data.isDrawCelebrated
-import com.example.pruebas.domain.ApiRepo
 import com.example.pruebas.domain.LotteryDatabaseRepo
 import com.example.pruebas.domain.LotteryGame
 import com.example.pruebas.domain.WebViewRepo
@@ -18,15 +17,13 @@ import kotlinx.coroutines.launch
 class ExtraDetailViewModel(
     ticketId: String,
     private val webViewRepo: WebViewRepo,
-    private val apiRepo: ApiRepo,
     private val dbRepo: LotteryDatabaseRepo
 ) : ViewModel() {
 
     var state by mutableStateOf(ExtraDetailUiState())
         private set
 
-    var apiState by mutableStateOf(ApiExtraInfo())
-        private set
+
 
     init {
         loadInfo(ticketId)
@@ -93,45 +90,6 @@ class ExtraDetailViewModel(
 
         }
     }
-
-
-    private fun loadApiInfo(ticketId: String) {
-        if (apiState.selectedTicket?.id == ticketId && apiState.apiInfo != null) return
-
-        viewModelScope.launch(Dispatchers.IO) {
-            apiState = apiState.copy(isLoadingInfo = true, error = null)
-
-            try {
-                val ticket = dbRepo.getTicketById(ticketId).first()
-
-                state = state.copy(selectedTicket = ticket)
-
-                val result = apiRepo.getExtraInfoSorteos(ticket)
-
-                apiState = if (result != null) {
-                    apiState.copy(
-                        apiInfo = result,
-                        isLoadingInfo = false,
-                        error = null
-                    )
-                } else {
-                    apiState.copy(
-                        apiInfo = null,
-                        isLoadingInfo = false,
-                        error = "No se pudieron cargar los datos adicionales"
-                    )
-                }
-
-            } catch (e: Exception) {
-                apiState = apiState.copy(
-                    isLoadingInfo = false,
-                    error = e.localizedMessage ?: "Error desconocido"
-                )
-            }
-        }
-    }
-
-
 
 
 }
