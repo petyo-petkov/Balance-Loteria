@@ -1,6 +1,5 @@
 package com.example.pruebas.presentation
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -27,7 +26,6 @@ import com.example.pruebas.presentation.extraDetailScreen.ExtraDetailViewModel
 import com.example.pruebas.presentation.homeScreen.HomeIntent
 import com.example.pruebas.presentation.homeScreen.HomeScreen
 import com.example.pruebas.presentation.homeScreen.HomeScreenViewModel
-import com.example.pruebas.presentation.homeScreen.MyFAB
 import com.example.pruebas.presentation.jackpotScreen.JackpotScreen
 import com.example.pruebas.presentation.jackpotScreen.JackpotScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
@@ -52,24 +50,29 @@ private val fadeTransitionMetadata = metadata {
 }
 
 @Composable
-fun App(
-    homeVM: HomeScreenViewModel = koinViewModel(),
-    scannerVM: ScannerViewModel = koinViewModel()
-) {
-    val state = homeVM.state
+fun App() {
 
     val backStack = rememberNavBackStack(HomeKey)
-    val currentKey = backStack.lastOrNull()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = currentKey is HomeKey,
-                enter = fadeIn(),
-                exit = fadeOut()
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets.safeDrawing
+    ) { padding ->
+        val entryProvider = entryProvider {
+            entry<HomeKey>(
+                metadata = fadeTransitionMetadata
             ) {
-                MyFAB(
+                val homeVM: HomeScreenViewModel = koinViewModel()
+                val scannerVM: ScannerViewModel = koinViewModel()
+
+                HomeScreen(
+                    modifier = Modifier.padding(padding),
+                    tickets = homeVM.state.tickets,
+                    balanceState = homeVM.state.balance,
+                    onClick = { ticket ->
+                        backStack.add(DetailKey(ticket.id))
+                    },
                     onDeleteClick = {
                         homeVM.onIntent(HomeIntent.ToggleDeleteDialog)
                     },
@@ -81,22 +84,14 @@ fun App(
                         backStack.add(JackpotKey)
                     }
                 )
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.surface,
-        contentWindowInsets = WindowInsets.safeDrawing
-    ) { padding ->
-        val entryProvider = entryProvider {
-            entry<HomeKey>(
-                metadata = fadeTransitionMetadata
-            ) {
-                HomeScreen(
-                    modifier = Modifier.padding(padding),
-                    tickets = state.tickets,
-                    balanceState = state.balance,
-                    onClick = { ticket ->
-                        backStack.add(DetailKey(ticket.id))
-                    }
+                DeleteDialog(
+                    onDismiss = { homeVM.onIntent(HomeIntent.ToggleDeleteDialog) },
+                    onConfirm = {
+                        homeVM.onIntent(HomeIntent.DeleteAll)
+                        homeVM.onIntent(HomeIntent.ToggleDeleteDialog)
+                    },
+                    show = homeVM.state.showDeleteDialog,
+                    mensaje = "Borrar todos los Boletos?"
                 )
             }
 
@@ -161,13 +156,5 @@ fun App(
         )
     }
 
-    DeleteDialog(
-        onDismiss = { homeVM.onIntent(HomeIntent.ToggleDeleteDialog) },
-        onConfirm = {
-            homeVM.onIntent(HomeIntent.DeleteAll)
-            homeVM.onIntent(HomeIntent.ToggleDeleteDialog)
-        },
-        show = state.showDeleteDialog,
-        mensaje = "Borrar todos los Boletos?"
-    )
+
 }

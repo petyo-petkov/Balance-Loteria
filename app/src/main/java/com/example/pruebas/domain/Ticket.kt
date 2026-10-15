@@ -11,6 +11,7 @@ data class Ticket(
     val numeroSorteo: String = "",                     // S = 251......
     val cdc: String = "",                              // A = 13219....
     val fecha: String = "",                            // S = 251 08SEP26 :1
+    val sorteosJugados: Int = 0,                       // S = ..........  :1
     val gameStatus: String = "",                       // W = 0
     val office: String = "",                           // T = 50050-1
     val numbers: List<String> = emptyList(),           // .1 = 040812273049.2 = 041519274249
@@ -52,6 +53,7 @@ data class Ticket(
             numeroSorteo = numeroSorteo,
             cdc = cdc,
             fecha = fecha,
+            sorteosJugados = sorteosJugados,
             gameStatus = gameStatus,
             office = office,
             numbers = numbers,

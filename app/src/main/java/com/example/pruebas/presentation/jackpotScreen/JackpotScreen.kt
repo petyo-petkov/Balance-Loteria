@@ -20,9 +20,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import com.example.pruebas.data.toCurrencyFormat
+import java.util.Locale
+import java.util.Locale.getDefault
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -63,7 +67,7 @@ fun JackpotScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Botes proximos sorteos:",
+                        text = "Botes:",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -80,7 +84,8 @@ fun JackpotScreen(
                                 nombre = item.nombre,
                                 fechaCierre = item.fechaCierre,
                                 estado = item.estado,
-                                jackpot = item.jackpot
+                                jackpot = item.jackpot,
+                                dia = item.dia
                             )
 
                         }
@@ -96,7 +101,8 @@ fun JackpotCard(
     nombre: String,
     fechaCierre: String,
     estado: String,
-    jackpot: String
+    jackpot: String,
+    dia: String
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth()
@@ -123,12 +129,14 @@ fun JackpotCard(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
             }
-            if (estado.isNotBlank()) {
-                Text(
-                    text = "Estado: $estado",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
+            Text(
+                text = dia.replaceFirstChar {
+                    if (it.isLowerCase()) it.titlecase(Locale.ROOT)
+                    else it.toString()
+                },
+                style = MaterialTheme.typography.bodyMedium
+            )
+
             if (fechaCierre.isNotBlank()) {
                 Text(
                     text = "Cierre: $fechaCierre",

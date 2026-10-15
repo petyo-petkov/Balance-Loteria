@@ -31,11 +31,14 @@ fun MyFAB(
     onDeleteClick: () -> Unit,
     onScannerClick: () -> Unit,
     onJackpotClick: () -> Unit,
+    modifier: Modifier = Modifier
+
 ){
 
     var expanded by rememberSaveable { mutableStateOf(false) }
     val vibrantColors = FloatingToolbarDefaults.vibrantFloatingToolbarColors()
     HorizontalFloatingToolbar(
+        modifier = modifier,
         expanded = expanded,
         floatingActionButton = {
             TooltipBox(

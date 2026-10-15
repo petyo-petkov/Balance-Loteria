@@ -26,7 +26,7 @@ fun BalanceCard(
             .padding(12.dp),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
         ),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 24.dp)
 

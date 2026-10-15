@@ -7,7 +7,7 @@ import androidx.room3.ColumnTypeConverters
 
 @Database(
     entities = [TicketEntity::class],
-    version = 21,
+    version = 22,
     exportSchema = false
 )
 @ColumnTypeConverters(Converters::class)

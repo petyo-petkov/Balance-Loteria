@@ -37,6 +37,7 @@ fun ticketFromQrCode(rawData: String): Ticket {
         val gameStatus = pairs["W"] ?: ""
         val office = pairs["T"] ?: ""
         val fecha = pairs["S"]?.substringBefore(":")?.takeLast(7)?.toStoreDate() ?: ""
+        val sorteosJugados = pairs["S"]?.substringAfter(":")?.toInt() ?: 1
         
         val game = LotteryGame.fromPValue(pairs["P"])
         
@@ -50,7 +51,7 @@ fun ticketFromQrCode(rawData: String): Ticket {
         var reintegro: String? = ""
         var millon: String? = ""
         var joker: String? = ""
-        var claves = mutableListOf<String>()
+        val claves = mutableListOf<String>()
         var numLottery: String? = ""
         var serie: String? = ""
         var fraccion: String? = ""
@@ -100,7 +101,11 @@ fun ticketFromQrCode(rawData: String): Ticket {
             else -> {}
         }
 
-        val betPrice = game.calculatePrice(numbers.size.coerceAtLeast(1), joker != "NO" && joker != null)
+        val betPrice = game.calculatePrice(
+            betCount = numbers.size.coerceAtLeast(1),
+            hasJoker = joker != "NO" && joker != null,
+        sortesJugados = sorteosJugados
+        )
 
         Ticket(
             id = id,
@@ -110,6 +115,7 @@ fun ticketFromQrCode(rawData: String): Ticket {
             numeroSorteo = numeroSorteo,
             cdc = cdc,
             fecha = fecha,
+            sorteosJugados = sorteosJugados,
             gameStatus = gameStatus,
             office = office,
             numbers = numbers,

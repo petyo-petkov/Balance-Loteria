@@ -53,7 +53,8 @@ class JackpotScreenViewModel(
                         nombre = name,
                         fechaCierre = json["cierre"]?.jsonPrimitive?.contentOrNull ?: "",
                         estado = json["estado"]?.jsonPrimitive?.contentOrNull ?: "",
-                        jackpot = json["premio_bote"]?.jsonPrimitive?.contentOrNull ?: ""
+                        jackpot = json["premio_bote"]?.jsonPrimitive?.contentOrNull ?: "",
+                        dia = json["dia_semana"]?.jsonPrimitive?.contentOrNull ?: ""
                     )
                 }
                 Log.d("Jackpot", items.toString())
@@ -83,5 +84,6 @@ data class JackpotState(
     val nombre: String = "",
     val fechaCierre: String = "",
     val estado: String = "",
-    val jackpot: String = ""
+    val jackpot: String = "",
+    val dia : String = ""
 )
