@@ -26,7 +26,7 @@ sealed class LotteryGame(
         override fun calculatePrice(betCount: Int, hasJoker: Boolean, sortesJugados: Int) = (betCount * 2.5) * sortesJugados
     }
 
-    object Nacional : LotteryGame("10", "Loteria Nacional", "LNAC","09", 0xFF0277BD) {
+    object Nacional : LotteryGame("5", "Loteria Nacional", "LNAC","09", 0xFF0277BD) {
         override fun calculatePrice(betCount: Int, hasJoker: Boolean, sortesJugados: Int) = 3.0
     }
 
@@ -44,7 +44,7 @@ sealed class LotteryGame(
             "2" -> Bonoloto
             "4" -> Gordo
             "7" -> Euromillones
-            "10" -> Nacional
+            "5" -> Nacional
             "14" -> Eurodreams
             else -> Unknown
         }

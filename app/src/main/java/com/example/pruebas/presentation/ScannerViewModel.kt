@@ -36,7 +36,7 @@ class ScannerViewModel(
                 if (!data.isNullOrBlank()) {
                     try {
                         if (data.length > 20) {
-                            val qrTicket = ticketFromQrCode(data)
+                            val qrTicket = ticketFromQrCode(data, webViewRepo)
                             dbRepo.createTicket(qrTicket)
                             Log.d("startScanning", "Ticket QR: $qrTicket")
                         } else if (data.length == 20) {

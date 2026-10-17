@@ -1,7 +1,9 @@
 package com.example.pruebas.data
 
+import com.example.pruebas.data.network.webView.MissingInfoLNAC
 import com.example.pruebas.domain.LotteryGame
 import com.example.pruebas.domain.Ticket
+import com.example.pruebas.domain.WebViewRepo
 
 fun parse(rawData: String): Map<String, String> {
     return try {
@@ -27,7 +29,7 @@ fun parse(rawData: String): Map<String, String> {
     }
 }
 
-fun ticketFromQrCode(rawData: String): Ticket {
+suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket {
     return try {
         val pairs = parse(rawData)
 
@@ -55,6 +57,8 @@ fun ticketFromQrCode(rawData: String): Ticket {
         var numLottery: String? = ""
         var serie: String? = ""
         var fraccion: String? = ""
+        var missingInfo: MissingInfoLNAC? = null
+
 
         when (game) {
             is LotteryGame.Primitiva -> {
@@ -94,6 +98,7 @@ fun ticketFromQrCode(rawData: String): Ticket {
             }
 
             is LotteryGame.Nacional -> {
+                missingInfo = webViewRepo.getMissingInfoLNAC(numeroSorteo)
                 numLottery = pairs["N"]
                 serie = pairs["SE"]
                 fraccion = pairs["F"]
@@ -101,11 +106,29 @@ fun ticketFromQrCode(rawData: String): Ticket {
             else -> {}
         }
 
-        val betPrice = game.calculatePrice(
+        val calculatedPrice = game.calculatePrice(
             betCount = numbers.size.coerceAtLeast(1),
             hasJoker = joker != "NO" && joker != null,
-        sortesJugados = sorteosJugados
-        )
+            sortesJugados = sorteosJugados
+        ).toString()
+
+        val info = missingInfo
+        val betPrice = if (game is LotteryGame.Nacional && !info?.precio.isNullOrBlank()) {
+            info.precio
+        } else {
+            calculatedPrice
+        }
+
+        val cierre = if (game is LotteryGame.Nacional && !info?.cierre.isNullOrBlank()) {
+            info.cierre
+        } else {
+            fecha
+        }
+
+        val apertura = if (game is LotteryGame.Nacional) info?.apertura else null
+
+        val finalFecha = fecha.ifEmpty { info?.fecha.orEmpty() }
+        val finalGameStatus = gameStatus.ifEmpty { info?.gameStatus.orEmpty() }
 
         Ticket(
             id = id,
@@ -114,13 +137,13 @@ fun ticketFromQrCode(rawData: String): Ticket {
             name = game.name,
             numeroSorteo = numeroSorteo,
             cdc = cdc,
-            fecha = fecha,
+            fecha = finalFecha,
             sorteosJugados = sorteosJugados,
-            gameStatus = gameStatus,
+            gameStatus = finalGameStatus,
             office = office,
             numbers = numbers,
             prize = "0.0",
-            betPrice = betPrice.toString(),
+            betPrice = betPrice,
             isWinner = false,
             joker = joker,
             reintegro = reintegro,
@@ -131,11 +154,12 @@ fun ticketFromQrCode(rawData: String): Ticket {
             serie = serie,
             fraccion = fraccion,
             clave = claves,
-            cierre = fecha,
-            apertura = null
+            cierre = cierre,
+            apertura = apertura
         )
     } catch (e: Exception) {
         android.util.Log.e("TicketFromQr", "Error mapping ticket from QR", e)
         Ticket(id = rawData, name = "Boleto Desconocido")
     }
 }
+
