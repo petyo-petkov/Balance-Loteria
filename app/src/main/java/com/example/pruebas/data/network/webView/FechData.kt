@@ -41,7 +41,6 @@ suspend fun fetchData(
 
                         webViewClient = object : WebViewClient() {
                             override fun onPageFinished(view: WebView?, url: String?) {
-                                Log.d("fetchData", "Página cargada: $url")
                                 evaluateJavascript(fetchFun()) { }
                             }
 

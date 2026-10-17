@@ -25,7 +25,7 @@ fun EscrutinioSection(prize: List<Escrutinio?>) {
 
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Escrutinio:", style = MaterialTheme.typography.headlineSmall)

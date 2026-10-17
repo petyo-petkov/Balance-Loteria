@@ -31,9 +31,9 @@ fun TicketUI(
     val ticket = uiModel.ticket
     val lotteryColor = Color(uiModel.lotteryColorHex)
     val prizeBackgroundColor = when(uiModel.prizeStatus){
-        PrizeStatus.NO_PRIZE -> MaterialTheme.colorScheme.surfaceContainerLowest
-        PrizeStatus.WINNER -> MaterialTheme.colorScheme.surfaceContainerLow
-        PrizeStatus.UNKNOWN ->  MaterialTheme.colorScheme.surfaceContainerLowest
+        PrizeStatus.NO_PRIZE -> MaterialTheme.colorScheme.surfaceContainerLow
+        PrizeStatus.WINNER -> MaterialTheme.colorScheme.surfaceContainerLowest
+        PrizeStatus.UNKNOWN ->  MaterialTheme.colorScheme.surfaceContainer
     }
 
     ElevatedCard(

@@ -32,8 +32,8 @@ fun PrimitivaDetails(ticket: Ticket) {
             Text("Reintegro:")
             NumberCircle(
                 number = ticket.reintegro ?: "",
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                textColor = MaterialTheme.colorScheme.onSecondaryContainer
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                textColor = MaterialTheme.colorScheme.onTertiaryContainer
             )
         }
         Divisor()

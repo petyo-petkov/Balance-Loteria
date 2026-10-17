@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -92,9 +93,16 @@ fun DetailScreen(
             InfoText(text = ticket.fecha.toDisplayDate())
             Divisor()
 
-            // #Sorteo
-            InfoText(text = "Sorteo: ${ticket.numeroSorteo}")
+            // #Sorteo y Id
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                InfoText(text = "Sorteo: ${ticket.numeroSorteo}")
+                InfoText(text = "Id: ${ticket.idSorteo}")
+            }
             Divisor()
+
             if (ticket.lotteryGame !is LotteryGame.Nacional)
                 InfoText(text = "Combinaciones:")
 

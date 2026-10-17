@@ -28,6 +28,7 @@ import com.example.pruebas.presentation.detailScreen.detailsScreens.BonolotoDeta
 import com.example.pruebas.presentation.detailScreen.detailsScreens.EurodreamsDetails
 import com.example.pruebas.presentation.detailScreen.detailsScreens.EuromillonesDetails
 import com.example.pruebas.presentation.detailScreen.detailsScreens.Gordo
+import com.example.pruebas.presentation.detailScreen.detailsScreens.NumberCircle
 import com.example.pruebas.presentation.detailScreen.detailsScreens.PrimitivaDetails
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -41,7 +42,6 @@ fun ExtraDetailScreen(
     val isLoading = state.isLoadingInfo
 
     val info = infoModel
-
 
     OutlinedCard(
         modifier = modifier
@@ -126,42 +126,86 @@ fun ExtraDetailScreen(
                 Divisor()
 
                 InfoText("Combinación ganadora:")
-                Row(
-                    modifier = Modifier.padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val combination = info?.combinacion
-                    InfoText(combination)
-//                    combination?.forEach { numero ->
-//                        NumberCircle(
-//                            number = numero.toString(),
-//                            color = MaterialTheme.colorScheme.primaryContainer
-//                        )
-//                    }
+                val dataSorteo = state.dataSorteo
+                if (!dataSorteo.combinacion.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        dataSorteo.combinacion.forEach { numero ->
+                            NumberCircle(
+                                number = numero,
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                textColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        }
+                    }
+                } else if (!info?.combinacion.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        InfoText(info.combinacion)
+                    }
                 }
                 Divisor()
 
-//                if (info?.resultData?.reintegro != null) {
-//                    Row {
-//                        InfoText("Reintegro:")
-//                        NumberCircle(
-//                            number = info.resultData.reintegro.toString(),
-//                            color = MaterialTheme.colorScheme.secondaryContainer
-//                        )
-//                    }
-//                    Divisor()
-//                }
-//                if (info?.resultData?.complementario != null) {
-//                    Row {
-//                        InfoText("Complimentario:")
-//                        NumberCircle(
-//                            number = info.resultData.complementario.toString(),
-//                            color = MaterialTheme.colorScheme.tertiaryContainer
-//                        )
-//                    }
-//                    Divisor()
-//                }
+                if (!dataSorteo.complimentario.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        InfoText("Complementario:")
+                        NumberCircle(
+                            number = dataSorteo.complimentario,
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            textColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                    Divisor()
+                }
+
+                if (!dataSorteo.reintegro.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val reintegroLabel = when {
+                            selectedTicket?.gameId == "EDMS" || selectedTicket?.lotteryGame is LotteryGame.Eurodreams || info?.gameId == "EDMS" -> "Sueño:"
+                            selectedTicket?.gameId == "ELGR" || selectedTicket?.lotteryGame is LotteryGame.Gordo || info?.gameId == "ELGR" -> "Clave:"
+                            else -> "Reintegro:"
+                        }
+                        InfoText(reintegroLabel)
+                        NumberCircle(
+                            number = dataSorteo.reintegro,
+                            color = MaterialTheme.colorScheme.tertiaryContainer,
+                            textColor = MaterialTheme.colorScheme.onTertiaryContainer
+                        )
+                    }
+                    Divisor()
+                }
+
+                if (!dataSorteo.estrellas.isNullOrEmpty()) {
+                    Row(
+                        modifier = Modifier.padding(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        InfoText("Estrellas:")
+                        dataSorteo.estrellas.forEach { estrella ->
+                            NumberCircle(
+                                number = estrella,
+                                color = MaterialTheme.colorScheme.tertiaryContainer,
+                                textColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            )
+                        }
+                    }
+                    Divisor()
+                }
 
                 EscrutinioSection(info?.escrutinio ?: emptyList())
 

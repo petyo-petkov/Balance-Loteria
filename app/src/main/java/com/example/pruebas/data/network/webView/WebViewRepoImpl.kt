@@ -9,6 +9,7 @@ import com.example.pruebas.data.network.webView.urlsGetPremio.urlPremioEMIL
 import com.example.pruebas.data.network.webView.urlsGetPremio.urlPremioLAPR
 import com.example.pruebas.data.network.webView.webViewModels.ResultadoSorteo
 import com.example.pruebas.data.network.webView.webViewModels.lnac.ResultadoSorteoLNAC
+import com.example.pruebas.data.parsePrize
 import com.example.pruebas.data.toApiDateFormat
 import com.example.pruebas.domain.LotteryGame
 import com.example.pruebas.domain.Ticket
@@ -91,10 +92,13 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
                 }
             }
 
+            val ticketApiDate = ticket.fecha.toApiDateFormat()
             val sorteo = sorteos.find { it.idSorteo == ticket.idSorteo }
                 ?: sorteos.find {
                     it.idSorteo.endsWith(ticket.numeroSorteo) &&
-                            (ticket.fecha.isBlank() || it.fechaSorteo.contains(ticket.fecha))
+                            (ticket.fecha.isBlank() ||
+                                    it.fechaSorteo.toApiDateFormat() == ticketApiDate ||
+                                    it.fechaSorteo.contains(ticket.fecha))
                 }
 
             return sorteo
@@ -259,44 +263,47 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
 
     override suspend fun getPremios(ticket: Ticket): String {
         val game = ticket.lotteryGame
-        val url = when (game) {
-            is LotteryGame.Primitiva -> urlPremioLAPR(ticket)
-            is LotteryGame.Bonoloto -> urlPremioBONO(ticket)
-            is LotteryGame.Euromillones -> urlPremioEMIL(ticket)
-            is LotteryGame.Eurodreams -> urlPremioEDMS(ticket)
-            is LotteryGame.Gordo -> urlPremioELGR(ticket)
-            else -> ""
+        val drawIds = multiplesSorteos(ticket)
+        if (drawIds.isEmpty()) return "0.0"
+
+        var totalPremio = 0.0
+
+        for (drawId in drawIds) {
+            val ticketForDraw = ticket.copy(idSorteo = drawId)
+            val url = when (game) {
+                is LotteryGame.Primitiva -> urlPremioLAPR(ticketForDraw)
+                is LotteryGame.Bonoloto -> urlPremioBONO(ticketForDraw)
+                is LotteryGame.Euromillones -> urlPremioEMIL(ticketForDraw)
+                is LotteryGame.Eurodreams -> urlPremioEDMS(ticketForDraw)
+                is LotteryGame.Gordo -> urlPremioELGR(ticketForDraw)
+                else -> ""
+            }
+
+            if (url.isNotBlank()) {
+                Log.i("getPremios", "Consultando sorteo $drawId: $url")
+                val premioRaw = fetchData(
+                    webView = webView,
+                    url = url,
+                    fetchFun = { getPremio(game.type) }
+                ).replace("€", "").trim()
+
+                if (!premioRaw.startsWith("Error") && premioRaw.isNotBlank()) {
+                    totalPremio += premioRaw.parsePrize()
+                }
+            }
         }
 
-        if (url.isBlank()) return "0.0"
-        Log.i("URL", url)
-
-        val webGameId = when (game) {
-            is LotteryGame.Primitiva -> "LAPR"
-            is LotteryGame.Bonoloto -> "BONO"
-            is LotteryGame.Euromillones -> "EMIL"
-            is LotteryGame.Eurodreams -> "EDMS"
-            is LotteryGame.Gordo -> "ELGR"
-            else -> ticket.gameId
-        }
-
-        val premio = fetchData(
-            webView = webView,
-            url = url,
-            fetchFun = { getPremio(webGameId) }
-        ).replace("€", "")
-
-
-        return if (premio.startsWith("Error")) "0.0" else premio
+        return totalPremio.toString()
     }
 
     override suspend fun getPremioLNAC(ticket: Ticket): String {
         val numDecimo = ticket.numDecimo
         val idSorteo = ticket.idSorteo
 
-        val url =if(numDecimo != null) urlPremioLNACPorNumero(numeroLoteria = numDecimo, idSorteo = idSorteo) else ""
+        val url = if (!numDecimo.isNullOrBlank()) urlPremioLNACPorNumero(numeroLoteria = numDecimo, idSorteo = idSorteo) else ""
+        if (url.isBlank()) return "0.0"
         val data = getInfoAllGames(url)
-        return data.firstOrNull()?.getString("premioEnCentimos") ?: "0.2"
+        return data.firstOrNull()?.getString("premioEnCentimos") ?: "0.0"
     }
 
     private fun JsonObject.getString(key: String): String? {

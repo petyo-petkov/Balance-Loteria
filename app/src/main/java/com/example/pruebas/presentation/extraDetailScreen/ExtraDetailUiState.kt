@@ -9,7 +9,15 @@ data class ExtraDetailUiState(
     val selectedTicket: Ticket? = null,
     val infoModel: ResultadoSorteo? = null,
     val infoNacional: ResultadoSorteoLNAC? = null,
+    val dataSorteo: DataSorteo = DataSorteo(),
     val ticketUiModel: TicketUiModel? = null,
     val isLoadingInfo: Boolean = false,
     val error: String? = null
+)
+
+data class DataSorteo(
+    val combinacion: List<String>? = emptyList(),
+    val reintegro: String? = "",
+    val complimentario: String? = "",
+    val estrellas: List<String>? = emptyList()
 )

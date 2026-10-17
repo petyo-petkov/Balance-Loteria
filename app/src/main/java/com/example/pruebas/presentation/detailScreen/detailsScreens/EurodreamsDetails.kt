@@ -24,8 +24,8 @@ fun EurodreamsDetails(ticket: Ticket) {
                 if (index < dreams.size) {
                     NumberCircle(
                         number = dreams[index],
-                        color = MaterialTheme.colorScheme.secondaryContainer,
-                        textColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        color = MaterialTheme.colorScheme.tertiaryContainer,
+                        textColor = MaterialTheme.colorScheme.onTertiaryContainer
                     )
                 }
             }
