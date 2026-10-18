@@ -261,14 +261,48 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         }
     }
 
+    private suspend fun getUltimoSorteoIdLong(game: LotteryGame): Long? {
+        val urlCelebrados = when (game) {
+            is LotteryGame.Bonoloto -> GET_ULTIMOS_CELEBRADOS_BONO
+            is LotteryGame.Primitiva -> GET_ULTIMOS_CELEBRADOS_LAPR
+            is LotteryGame.Gordo -> GET_ULTIMOS_CELEBRADOS_ELGR
+            is LotteryGame.Euromillones -> GET_ULTIMOS_CELEBRADOS_EMIL
+            is LotteryGame.Eurodreams -> GET_ULTIMOS_CELEBRADOS_EDMS
+            is LotteryGame.Nacional -> GET_ULTIMOS_CELEBRADOS_LNAC
+            else -> ""
+        }
+
+        if (urlCelebrados.isBlank()) return null
+
+        val celebradosList = getInfoAllGames(urlCelebrados)
+        return celebradosList.mapNotNull { json ->
+            val idStr = json.getString("id_sorteo") ?: json.getString("drawId")
+            idStr?.toLongOrNull()
+        }.maxOrNull()
+    }
+
     override suspend fun getPremios(ticket: Ticket): String {
         val game = ticket.lotteryGame
         val drawIds = multiplesSorteos(ticket)
         if (drawIds.isEmpty()) return "0.0"
 
+        val ultimoSorteoIdLong = try {
+            getUltimoSorteoIdLong(game)
+        } catch (e: Exception) {
+            Log.e("getPremios", "Error obteniendo último sorteo celebrado", e)
+            null
+        }
+
         var totalPremio = 0.0
+        var hasCheckedAtLeastOne = false
 
         for (drawId in drawIds) {
+            val drawIdLong = drawId.toLongOrNull()
+            if (ultimoSorteoIdLong != null && drawIdLong != null && drawIdLong > ultimoSorteoIdLong) {
+                Log.i("getPremios", "Sorteo $drawId ($drawIdLong) es posterior al último celebrado ($ultimoSorteoIdLong), omitiendo.")
+                continue
+            }
+
             val ticketForDraw = ticket.copy(idSorteo = drawId)
             val url = when (game) {
                 is LotteryGame.Primitiva -> urlPremioLAPR(ticketForDraw)
@@ -289,8 +323,13 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
 
                 if (!premioRaw.startsWith("Error") && premioRaw.isNotBlank()) {
                     totalPremio += premioRaw.parsePrize()
+                    hasCheckedAtLeastOne = true
                 }
             }
+        }
+
+        if (!hasCheckedAtLeastOne) {
+            throw Exception("Sorteo no celebrado")
         }
 
         return totalPremio.toString()

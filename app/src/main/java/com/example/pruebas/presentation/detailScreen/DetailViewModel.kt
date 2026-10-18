@@ -96,12 +96,13 @@ class DetailViewModel(
                     }
                 } else {
                     try {
-                       val premioRaw = webViewRepo.getPremios(ticket)
+                        val premioRaw = webViewRepo.getPremios(ticket)
                         premio = premioRaw.parsePrize()
                         Log.i("PREMIO", premio.toString())
 
                     } catch (e: Exception) {
                         hasError = true
+                        errorMessage = e.message ?: "Error al comprobar el sorteo"
                         Log.e("DetailViewModel", "Error premio check", e)
                     }
 
