@@ -15,6 +15,7 @@ data class TicketEntity(
     val cdc: String,
     val fecha: String,
     val sorteosJugados: Int,
+    val sorteosComprobados: Int = 0,
     val gameStatus: String,
     val office: String,
     val numbers: List<String>,
@@ -33,6 +34,7 @@ data class TicketEntity(
     val clave: List<String>?,
     val cierre: String?,
     val apertura: String?,
+    val multiple: Boolean,
 
 ) {
     fun toDomain(): Ticket {
@@ -45,6 +47,7 @@ data class TicketEntity(
             cdc = cdc,
             fecha = fecha,
             sorteosJugados = sorteosJugados,
+            sorteosComprobados = sorteosComprobados,
             gameStatus = gameStatus,
             office = office,
             numbers = numbers,
@@ -62,7 +65,8 @@ data class TicketEntity(
             fraccion = fraccion,
             clave = clave,
             cierre = cierre,
-            apertura = apertura
+            apertura = apertura,
+            multiple = multiple
 
         )
     }

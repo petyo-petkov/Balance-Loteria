@@ -9,6 +9,7 @@ import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.HorizontalFloatingToolbar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
@@ -36,7 +37,8 @@ fun MyFAB(
 ){
 
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val vibrantColors = FloatingToolbarDefaults.vibrantFloatingToolbarColors()
+   // val vibrantColors = FloatingToolbarDefaults.vibrantFloatingToolbarColors(toolbarContainerColor = MaterialTheme.colorScheme.surface)
+    val vibrantColors = FloatingToolbarDefaults.standardFloatingToolbarColors()
     HorizontalFloatingToolbar(
         modifier = modifier,
         expanded = expanded,
@@ -58,7 +60,8 @@ fun MyFAB(
                 modifier = Modifier,
             ) {
                 FloatingToolbarDefaults.VibrantFloatingActionButton(
-                    onClick = { expanded = !expanded }
+                    onClick = { expanded = !expanded },
+                   // containerColor = MaterialTheme.colorScheme.surface
                 ) {
                     Icon(MaterialIcons.Filled.Add, contentDescription = "Localized description")
                 }

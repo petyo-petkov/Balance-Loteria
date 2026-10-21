@@ -12,6 +12,7 @@ data class Ticket(
     val cdc: String = "",                              // A = 13219....
     val fecha: String = "",                            // S = 251 08SEP26 :1
     val sorteosJugados: Int = 0,                       // S = ..........  :1
+    val sorteosComprobados: Int = 0,
     val gameStatus: String = "",                       // W = 0
     val office: String = "",                           // T = 50050-1
     val numbers: List<String> = emptyList(),           // .1 = 040812273049.2 = 041519274249
@@ -21,6 +22,7 @@ data class Ticket(
     val isChecked: Boolean = false,
     val cierre: String? = null,
     val apertura: String? = null,
+    val multiple: Boolean = false,
 
     //Primitiva
     val joker: String? = null,                          // J = NO
@@ -54,6 +56,7 @@ data class Ticket(
             cdc = cdc,
             fecha = fecha,
             sorteosJugados = sorteosJugados,
+            sorteosComprobados = sorteosComprobados,
             gameStatus = gameStatus,
             office = office,
             numbers = numbers,
@@ -63,6 +66,7 @@ data class Ticket(
             isChecked = isChecked,
             cierre = cierre,
             apertura = apertura,
+            multiple = multiple,
             joker = joker,
             reintegro = reintegro,
             stars = stars,

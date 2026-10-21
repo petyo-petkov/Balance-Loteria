@@ -5,6 +5,11 @@ import com.example.pruebas.data.network.webView.webViewModels.ResultadoSorteo
 import com.example.pruebas.data.network.webView.webViewModels.lnac.ResultadoSorteoLNAC
 import kotlinx.serialization.json.JsonObject
 
+data class PremioResult(
+    val premio: String,
+    val sorteosComprobados: Int
+)
+
 interface WebViewRepo {
 
     suspend fun getInfoAllGames(url: String): List<JsonObject>
@@ -17,7 +22,7 @@ interface WebViewRepo {
 
     suspend fun getPremioLNAC(ticket: Ticket): String
 
-    suspend fun getPremios(ticket: Ticket): String
+    suspend fun getPremios(ticket: Ticket): PremioResult
 
     suspend fun getJackpot(): List<JsonObject>
 

@@ -12,6 +12,7 @@ import com.example.pruebas.data.network.webView.webViewModels.lnac.ResultadoSort
 import com.example.pruebas.data.parsePrize
 import com.example.pruebas.data.toApiDateFormat
 import com.example.pruebas.domain.LotteryGame
+import com.example.pruebas.domain.PremioResult
 import com.example.pruebas.domain.Ticket
 import com.example.pruebas.domain.WebViewRepo
 import kotlinx.serialization.Serializable
@@ -281,10 +282,10 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         }.maxOrNull()
     }
 
-    override suspend fun getPremios(ticket: Ticket): String {
+    override suspend fun getPremios(ticket: Ticket): PremioResult {
         val game = ticket.lotteryGame
         val drawIds = multiplesSorteos(ticket)
-        if (drawIds.isEmpty()) return "0.0"
+        if (drawIds.isEmpty()) return PremioResult("0.0", 0)
 
         val ultimoSorteoIdLong = try {
             getUltimoSorteoIdLong(game)
@@ -295,6 +296,7 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
 
         var totalPremio = 0.0
         var hasCheckedAtLeastOne = false
+        var checkedCount = 0
 
         for (drawId in drawIds) {
             val drawIdLong = drawId.toLongOrNull()
@@ -324,6 +326,7 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
                 if (!premioRaw.startsWith("Error") && premioRaw.isNotBlank()) {
                     totalPremio += premioRaw.parsePrize()
                     hasCheckedAtLeastOne = true
+                    checkedCount++
                 }
             }
         }
@@ -332,7 +335,10 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
             throw Exception("Sorteo no celebrado")
         }
 
-        return totalPremio.toString()
+        return PremioResult(
+            premio = totalPremio.toString(),
+            sorteosComprobados = checkedCount
+        )
     }
 
     override suspend fun getPremioLNAC(ticket: Ticket): String {

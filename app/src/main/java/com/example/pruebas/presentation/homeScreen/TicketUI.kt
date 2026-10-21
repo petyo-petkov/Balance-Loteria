@@ -31,9 +31,9 @@ fun TicketUI(
     val ticket = uiModel.ticket
     val lotteryColor = Color(uiModel.lotteryColorHex)
     val prizeBackgroundColor = when(uiModel.prizeStatus){
-        PrizeStatus.NO_PRIZE -> MaterialTheme.colorScheme.surfaceContainerLow
-        PrizeStatus.WINNER -> MaterialTheme.colorScheme.surfaceContainerLowest
-        PrizeStatus.UNKNOWN ->  MaterialTheme.colorScheme.surfaceContainer
+        PrizeStatus.NO_PRIZE -> MaterialTheme.colorScheme.secondaryContainer
+        PrizeStatus.WINNER -> MaterialTheme.colorScheme.primaryContainer
+        PrizeStatus.UNKNOWN ->  MaterialTheme.colorScheme.errorContainer
     }
 
     ElevatedCard(
@@ -64,19 +64,32 @@ fun TicketUI(
                 style = MaterialTheme.typography.titleLargeEmphasized,
                 color = lotteryColor
             )
+            // Varios Sorteos
+            if (ticket.sorteosJugados > 1) {
+                val comprobados = when {
+                    ticket.sorteosComprobados > 0 -> ticket.sorteosComprobados
+                    ticket.isChecked -> ticket.sorteosJugados
+                    else -> 0
+                }
+                Fila(
+                    text = "Sorteos: $comprobados/${ticket.sorteosJugados}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
 
+
+            // Precio - Premio
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                //Price
                 Fila(
                     text = "${ticket.betPrice} €",
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
-                //Prize
                 if (ticket.isChecked) {
 
                     val prizeTextColor = when (uiModel.prizeStatus) {

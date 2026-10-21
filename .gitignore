@@ -17,4 +17,6 @@
 URLS.kt
 ApiURLS.kt
 NetPruebas.kt
+Pruebas.kt
+PruebasTest.kt
 /app/src/main/java/com/example/pruebas/data/network/urlsGetPremio/

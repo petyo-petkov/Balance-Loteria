@@ -79,6 +79,7 @@ class DetailViewModel(
             var hasError = false
             var errorMessage: String? = null
 
+            var sorteosComprobados = 0
             withContext(Dispatchers.IO) {
                 if ((ticket.gameId == "LNAC" || ticket.lotteryGame is LotteryGame.Nacional) && !ticket.numDecimo.isNullOrEmpty()) {
                     try {
@@ -89,6 +90,7 @@ class DetailViewModel(
                         } else {
                             val premioRaw = webViewRepo.getPremioLNAC(ticket)
                             premio = premioRaw.parsePrize().div(100)
+                            sorteosComprobados = 1
                         }
                     } catch (e: Exception) {
                         hasError = true
@@ -96,8 +98,9 @@ class DetailViewModel(
                     }
                 } else {
                     try {
-                        val premioRaw = webViewRepo.getPremios(ticket)
-                        premio = premioRaw.parsePrize()
+                        val result = webViewRepo.getPremios(ticket)
+                        premio = result.premio.parsePrize()
+                        sorteosComprobados = result.sorteosComprobados
                         Log.i("PREMIO", premio.toString())
 
                     } catch (e: Exception) {
@@ -110,6 +113,7 @@ class DetailViewModel(
                 if (!hasError) {
                     val updatedTicket = ticket.copy(
                         prize = premio.toString(),
+                        sorteosComprobados = if (sorteosComprobados > 0) sorteosComprobados else ticket.sorteosJugados,
                         isChecked = true
                     )
                     dbRepo.updateTicket(updatedTicket)

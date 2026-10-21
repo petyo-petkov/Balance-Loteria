@@ -1,10 +1,12 @@
 package com.example.pruebas.presentation.homeScreen
 
+import android.graphics.BlurMaskFilter
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
@@ -12,24 +14,64 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.addOutline
+import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+
+fun Modifier.outsideShadow(
+    shape: Shape,
+    color: Color,
+    blur: Dp,
+) = this.drawWithContent {
+    val outline = shape.createOutline(size, layoutDirection, this)
+    val path = Path().apply { addOutline(outline) }
+
+    clipPath(path, clipOp = ClipOp.Difference) {
+        drawIntoCanvas { canvas ->
+            val frameworkPaint = android.graphics.Paint().apply {
+                this.color = color.copy(alpha = 0.35f).toArgb()
+                maskFilter = BlurMaskFilter(
+                    blur.toPx(),
+                    BlurMaskFilter.Blur.NORMAL
+                )
+            }
+            canvas.nativeCanvas.drawPath(path.asAndroidPath(), frameworkPaint)
+        }
+    }
+    drawContent()
+}
 
 @Composable
 fun BalanceCard(
     balanceState: BalanceState,
     modifier: Modifier = Modifier,
 ) {
+    val cardShape = RoundedCornerShape(24.dp)
+
     ElevatedCard(
         modifier = modifier
             .fillMaxWidth()
-            .padding(12.dp),
-        shape = MaterialTheme.shapes.large,
+            .padding(12.dp)
+            .outsideShadow(
+                shape = cardShape,
+                color = Color(0xFF006AC9),
+                blur = 16.dp,
+            ),
+        shape = cardShape,
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLowest,
+            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.8f),
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 24.dp)
-
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier

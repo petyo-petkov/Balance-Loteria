@@ -76,7 +76,9 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
                 numbers += rawBets.map {
                     it.substringAfter("=").substringBefore(":").chunked(2).joinToString(",")
                 }
-                dreams += rawBets.map { it.substringAfter(":") }
+                dreams += rawBets.map {
+                    it.substringAfter(":").chunked(2).joinToString(",")
+                }
             }
 
             is LotteryGame.Euromillones -> {
@@ -94,7 +96,9 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
                 numbers += rawBets.map {
                     it.substringAfter("=").substringBefore(":").chunked(2).joinToString(",")
                 }
-                claves += rawBets.map { it.substringAfter(":") }
+                claves += rawBets.map {
+                    it.substringAfter(":").chunked(2).joinToString(",")
+                }
             }
 
             is LotteryGame.Nacional -> {
@@ -106,9 +110,23 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
             else -> {}
         }
 
+        val isMultiple = game.isMultiple(
+            numbers = numbers,
+            stars = stars,
+            dreams = dreams,
+            clave = claves
+        )
+
+        val betCount = game.calculateBetsCount(
+            numbers = numbers,
+            stars = stars,
+            dreams = dreams,
+            clave = claves
+        )
+
         val calculatedPrice = game.calculatePrice(
-            betCount = numbers.size.coerceAtLeast(1),
-            hasJoker = joker != "NO" && joker != null,
+            betCount = betCount,
+            hasJoker = joker != "NO" && joker != null && joker.isNotBlank(),
             sortesJugados = sorteosJugados
         ).toString()
 
@@ -145,6 +163,7 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
             prize = "0.0",
             betPrice = betPrice,
             isWinner = false,
+            multiple = isMultiple,
             joker = joker,
             reintegro = reintegro,
             stars = stars,
