@@ -1,8 +1,8 @@
 package com.example.pruebas.presentation
 
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,21 +31,31 @@ import com.example.pruebas.presentation.jackpotScreen.JackpotScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+private const val duration = 700
 private val fadeTransitionMetadata = metadata {
     put(NavDisplay.TransitionKey) {
-        fadeIn(animationSpec = tween()) togetherWith fadeOut(
-            animationSpec = tween()
-        )
+        slideInHorizontally(
+            initialOffsetX =  { it },
+            animationSpec = tween(duration))  togetherWith
+                slideOutHorizontally(
+                    targetOffsetX =  { -it },
+                    animationSpec = tween(duration))
     }
     put(NavDisplay.PopTransitionKey) {
-        fadeIn(animationSpec = tween()) togetherWith fadeOut(
-            animationSpec = tween()
-        )
+        slideInHorizontally(
+            initialOffsetX =  { -it },
+            animationSpec = tween(duration)) togetherWith
+                slideOutHorizontally(
+                    targetOffsetX =  { it },
+                    animationSpec = tween(duration))
     }
     put(NavDisplay.PredictivePopTransitionKey) {
-        fadeIn(animationSpec = tween()) togetherWith fadeOut(
-            animationSpec = tween()
-        )
+        slideInHorizontally(
+            initialOffsetX =  { -it },
+            animationSpec = tween(duration)) togetherWith
+                slideOutHorizontally(
+                    targetOffsetX =  { it },
+                    animationSpec = tween(duration))
     }
 }
 
