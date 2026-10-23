@@ -2,6 +2,8 @@ package com.example.pruebas.presentation
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -33,7 +35,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
 private const val duration = 350
-private val fadeTransitionMetadata = metadata {
+
+private val slideTransitionMetadata = metadata {
     put(NavDisplay.TransitionKey) {
         slideInHorizontally(
             initialOffsetX = { it },
@@ -66,6 +69,21 @@ private val fadeTransitionMetadata = metadata {
     }
 }
 
+private val fadeTransitionMetadata = metadata {
+    put(NavDisplay.TransitionKey) {
+        fadeIn(animationSpec = tween(duration)) togetherWith
+                fadeOut(animationSpec = tween(duration))
+    }
+    put(NavDisplay.PopTransitionKey) {
+        fadeIn(animationSpec = tween(duration)) togetherWith
+                fadeOut(animationSpec = tween(duration))
+    }
+    put(NavDisplay.PredictivePopTransitionKey) {
+        fadeIn(animationSpec = tween(duration)) togetherWith
+                fadeOut(animationSpec = tween(duration))
+    }
+}
+
 @Composable
 fun App() {
 
@@ -78,7 +96,7 @@ fun App() {
     ) { padding ->
         val entryProvider = entryProvider {
             entry<HomeKey>(
-                metadata = fadeTransitionMetadata
+                metadata = slideTransitionMetadata
             ) {
                 val homeVM: HomeScreenViewModel = koinViewModel()
                 val scannerVM: ScannerViewModel = koinViewModel()
@@ -113,7 +131,7 @@ fun App() {
             }
 
             entry<DetailKey>(
-                metadata = fadeTransitionMetadata
+                metadata = slideTransitionMetadata
             ) { key ->
                 val detailVM: DetailViewModel = koinViewModel { parametersOf(key.ticketId) }
                 DetailScreen(
@@ -140,7 +158,7 @@ fun App() {
             }
 
             entry<ExtraDetailKey>(
-                metadata = fadeTransitionMetadata
+                metadata = slideTransitionMetadata
             ) { key ->
                 val extraDetailVM: ExtraDetailViewModel =
                     koinViewModel { parametersOf(key.ticketId) }

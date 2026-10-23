@@ -1,9 +1,10 @@
 package com.example.pruebas.ui.theme
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -31,6 +32,7 @@ private val LightColorScheme = lightColorScheme(
     */
 )
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun BalanceLoteriaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -41,7 +43,8 @@ fun BalanceLoteriaTheme(
     val colorScheme = when {
         dynamicColor -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            dynamicLightColorScheme(context)
+           // if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
         darkTheme -> DarkColorScheme
