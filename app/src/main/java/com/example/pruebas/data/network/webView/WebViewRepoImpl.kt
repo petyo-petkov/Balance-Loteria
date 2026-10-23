@@ -22,6 +22,15 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 
 
+private val json = Json {
+    coerceInputValues = true
+    ignoreUnknownKeys = true
+    isLenient = true
+    allowSpecialFloatingPointValues = true
+    useArrayPolymorphism = true
+    allowStructuredMapKeys = true
+}
+
 class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
 
     override suspend fun getInfoAllGames(url: String): List<JsonObject> {
@@ -37,21 +46,8 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         }
 
         return try {
-            when {
-                rawString.startsWith("[") -> jsonConfig().decodeFromString<List<JsonObject>>(
-                    rawString
-                )
-
-                rawString.startsWith("{") -> listOf(
-                    jsonConfig().decodeFromString<JsonObject>(
-                        rawString
-                    )
-                )
-
-                else -> {
-                    Log.e("getInfoAllGames", "Respuesta no es JSON para url $url: $rawString")
-                    emptyList()
-                }
+            parseJsonToList(rawString) {
+                Log.e("getInfoAllGames", "Respuesta no es JSON para url $url: $rawString")
             }
         } catch (e: Exception) {
             Log.e("getInfoAllGames", "Error parseando JSON de $url", e)
@@ -62,15 +58,7 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
     override suspend fun getExtraInfo(ticket: Ticket): ResultadoSorteo? {
         try {
             val game = ticket.lotteryGame
-            val url = when (game) {
-                is LotteryGame.Bonoloto -> GET_ULTIMOS_CELEBRADOS_BONO
-                is LotteryGame.Primitiva -> GET_ULTIMOS_CELEBRADOS_LAPR
-                is LotteryGame.Gordo -> GET_ULTIMOS_CELEBRADOS_ELGR
-                is LotteryGame.Euromillones -> GET_ULTIMOS_CELEBRADOS_EMIL
-                is LotteryGame.Eurodreams -> GET_ULTIMOS_CELEBRADOS_EDMS
-                is LotteryGame.Nacional -> GET_ULTIMOS_CELEBRADOS_LNAC
-                else -> ""
-            }
+            val url = urlCelebradosForGame(game)
 
             if (url.isBlank()) {
                 Log.e("getExtraInfo", "URL vacía para gameType: ${ticket.gameId}")
@@ -84,13 +72,8 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
                 return null
             }
 
-            val sorteos = when {
-                rawStr.startsWith("[") -> jsonConfig().decodeFromString<List<ResultadoSorteo>>(rawStr)
-                rawStr.startsWith("{") -> listOf(jsonConfig().decodeFromString<ResultadoSorteo>(rawStr))
-                else -> {
-                    Log.e("getExtraInfo", "Respuesta no es JSON para url $url: $rawStr")
-                    emptyList()
-                }
+            val sorteos = parseJsonToList<ResultadoSorteo>(rawStr) {
+                Log.e("getExtraInfo", "Respuesta no es JSON para url $url: $rawStr")
             }
 
             val ticketApiDate = ticket.fecha.toApiDateFormat()
@@ -126,20 +109,9 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
                 return null
             }
 
-            return when {
-                rawStr.startsWith("[") -> {
-                    jsonConfig().decodeFromString<List<ResultadoSorteoLNAC>>(rawStr).firstOrNull()
-                }
-
-                rawStr.startsWith("{") -> {
-                    jsonConfig().decodeFromString<ResultadoSorteoLNAC>(rawStr)
-                }
-
-                else -> {
-                    Log.e("getExtraInfoLNAC", "Respuesta no válida (no es JSON): $rawStr")
-                    null
-                }
-            }
+            return parseJsonToList<ResultadoSorteoLNAC>(rawStr) {
+                Log.e("getExtraInfoLNAC", "Respuesta no válida (no es JSON): $rawStr")
+            }.firstOrNull()
         } catch (e: Exception) {
             Log.e("getExtraInfoLNAC", "Error en getExtraInfoLNAC", e)
         }
@@ -251,27 +223,25 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         }
 
         return try {
-            when {
-                jackpot.startsWith("[") -> jsonConfig().decodeFromString<List<JsonObject>>(jackpot)
-                jackpot.startsWith("{") -> listOf(jsonConfig().decodeFromString<JsonObject>(jackpot))
-                else -> emptyList()
-            }
+            parseJsonToList(jackpot)
         } catch (e: Exception) {
             Log.e("getJackpot", "Error parseando jackpot: $jackpot", e)
             emptyList()
         }
     }
 
+    private fun urlCelebradosForGame(game: LotteryGame): String = when (game) {
+        is LotteryGame.Bonoloto -> GET_ULTIMOS_CELEBRADOS_BONO
+        is LotteryGame.Primitiva -> GET_ULTIMOS_CELEBRADOS_LAPR
+        is LotteryGame.Gordo -> GET_ULTIMOS_CELEBRADOS_ELGR
+        is LotteryGame.Euromillones -> GET_ULTIMOS_CELEBRADOS_EMIL
+        is LotteryGame.Eurodreams -> GET_ULTIMOS_CELEBRADOS_EDMS
+        is LotteryGame.Nacional -> GET_ULTIMOS_CELEBRADOS_LNAC
+        else -> ""
+    }
+
     private suspend fun getUltimoSorteoIdLong(game: LotteryGame): Long? {
-        val urlCelebrados = when (game) {
-            is LotteryGame.Bonoloto -> GET_ULTIMOS_CELEBRADOS_BONO
-            is LotteryGame.Primitiva -> GET_ULTIMOS_CELEBRADOS_LAPR
-            is LotteryGame.Gordo -> GET_ULTIMOS_CELEBRADOS_ELGR
-            is LotteryGame.Euromillones -> GET_ULTIMOS_CELEBRADOS_EMIL
-            is LotteryGame.Eurodreams -> GET_ULTIMOS_CELEBRADOS_EDMS
-            is LotteryGame.Nacional -> GET_ULTIMOS_CELEBRADOS_LNAC
-            else -> ""
-        }
+        val urlCelebrados = urlCelebradosForGame(game)
 
         if (urlCelebrados.isBlank()) return null
 
@@ -282,17 +252,80 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         }.maxOrNull()
     }
 
+    private suspend fun getDrawIdsForTicket(ticket: Ticket): List<String> {
+        if (ticket.sorteosJugados <= 1) {
+            return listOfNotNull(ticket.idSorteo.takeIf { it.isNotBlank() })
+        }
+
+        val game = ticket.lotteryGame
+        val gameId = ticket.gameId.ifBlank { game.type }
+        if (gameId.isBlank()) {
+            return multiplesSorteos(ticket)
+        }
+
+        try {
+            val count = ticket.sorteosJugados
+            val proximosUrl = urlProximosForGame(gameId, num = maxOf(10, count + 5))
+            val proximosList = getInfoAllGames(proximosUrl)
+
+            val celebradosUrl = urlCelebradosForGame(game)
+            val celebradosList = if (celebradosUrl.isNotBlank()) getInfoAllGames(celebradosUrl) else emptyList()
+
+            val allDraws = (celebradosList + proximosList)
+                .distinctBy { it.getString("id_sorteo") ?: it.getString("drawId") }
+                .sortedBy { (it.getString("id_sorteo") ?: it.getString("drawId"))?.toLongOrNull() ?: 0L }
+
+            val firstDrawId = ticket.idSorteo
+            val index = allDraws.indexOfFirst { json ->
+                val idStr = json.getString("id_sorteo") ?: json.getString("drawId")
+                idStr == firstDrawId || (idStr != null && idStr.endsWith(ticket.numeroSorteo) && ticket.numeroSorteo.isNotBlank())
+            }
+
+            if (index != -1) {
+                val selectedDraws = allDraws.subList(index, minOf(allDraws.size, index + count))
+                val drawIds = selectedDraws.mapNotNull { json ->
+                    json.getString("id_sorteo") ?: json.getString("drawId")
+                }
+                if (drawIds.isNotEmpty()) {
+                    return drawIds
+                }
+            } else if (proximosList.isNotEmpty()) {
+                val drawIds = proximosList.take(count).mapNotNull { json ->
+                    json.getString("id_sorteo") ?: json.getString("drawId")
+                }
+                if (drawIds.isNotEmpty()) {
+                    return drawIds
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("WebViewRepoImpl", "Error obteniendo drawIds para ticket ${ticket.id}", e)
+        }
+
+        return multiplesSorteos(ticket)
+    }
+
     override suspend fun getPremios(ticket: Ticket): PremioResult {
         val game = ticket.lotteryGame
-        val drawIds = multiplesSorteos(ticket)
+        val drawIds = getDrawIdsForTicket(ticket)
         if (drawIds.isEmpty()) return PremioResult("0.0", 0)
 
-        val ultimoSorteoIdLong = try {
-            getUltimoSorteoIdLong(game)
-        } catch (e: Exception) {
-            Log.e("getPremios", "Error obteniendo último sorteo celebrado", e)
-            null
+        val urlBuilder: (Ticket) -> String = when (game) {
+            is LotteryGame.Primitiva -> ::urlPremioLAPR
+            is LotteryGame.Bonoloto -> ::urlPremioBONO
+            is LotteryGame.Euromillones -> ::urlPremioEMIL
+            is LotteryGame.Eurodreams -> ::urlPremioEDMS
+            is LotteryGame.Gordo -> ::urlPremioELGR
+            else -> { _ -> "" }
         }
+
+        val ultimoSorteoIdLong: Long? = if (drawIds.size > 1 || drawIds.first().toLongOrNull() != null) {
+            try {
+                getUltimoSorteoIdLong(game)
+            } catch (e: Exception) {
+                Log.e("getPremios", "Error obteniendo último sorteo celebrado", e)
+                null
+            }
+        } else null
 
         var totalPremio = 0.0
         var hasCheckedAtLeastOne = false
@@ -305,16 +338,7 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
                 continue
             }
 
-            val ticketForDraw = ticket.copy(idSorteo = drawId)
-            val url = when (game) {
-                is LotteryGame.Primitiva -> urlPremioLAPR(ticketForDraw)
-                is LotteryGame.Bonoloto -> urlPremioBONO(ticketForDraw)
-                is LotteryGame.Euromillones -> urlPremioEMIL(ticketForDraw)
-                is LotteryGame.Eurodreams -> urlPremioEDMS(ticketForDraw)
-                is LotteryGame.Gordo -> urlPremioELGR(ticketForDraw)
-                else -> ""
-            }
-
+            val url = urlBuilder(ticket.copy(idSorteo = drawId))
             if (url.isNotBlank()) {
                 Log.i("getPremios", "Consultando sorteo $drawId: $url")
                 val premioRaw = fetchData(
@@ -355,20 +379,18 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         val element = this[key]
         return if (element is JsonPrimitive) element.contentOrNull else null
     }
-}
 
-
-private fun jsonConfig(): Json {
-    return Json {
-        coerceInputValues = true
-        ignoreUnknownKeys = true
-        isLenient = true
-        allowSpecialFloatingPointValues = true
-        prettyPrint = true
-        useArrayPolymorphism = true
-        allowStructuredMapKeys = true
+    // Helper genérico: parsea un JSON string a List<T>, soportando array o objeto único
+    private inline fun <reified T> parseJsonToList(
+        rawStr: String,
+        onUnknownFormat: () -> Unit = {}
+    ): List<T> = when {
+        rawStr.startsWith("[") -> json.decodeFromString<List<T>>(rawStr)
+        rawStr.startsWith("{") -> listOf(json.decodeFromString<T>(rawStr))
+        else -> { onUnknownFormat(); emptyList() }
     }
 }
+
 
 @Serializable
 data class MissingInfoLNAC(

@@ -14,7 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -28,27 +28,27 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
+// drawWithCache: Path y Paint se crean una sola vez y se reutilizan mientras
+// el tamaño del composable no cambie. Antes (drawWithContent) se allocaban en cada frame.
 fun Modifier.outsideShadow(
     shape: Shape,
     color: Color,
     blur: Dp,
-) = this.drawWithContent {
+) = this.drawWithCache {
     val outline = shape.createOutline(size, layoutDirection, this)
     val path = Path().apply { addOutline(outline) }
-
-    clipPath(path, clipOp = ClipOp.Difference) {
-        drawIntoCanvas { canvas ->
-            val frameworkPaint = android.graphics.Paint().apply {
-                this.color = color.copy(alpha = 0.35f).toArgb()
-                maskFilter = BlurMaskFilter(
-                    blur.toPx(),
-                    BlurMaskFilter.Blur.NORMAL
-                )
-            }
-            canvas.nativeCanvas.drawPath(path.asAndroidPath(), frameworkPaint)
-        }
+    val frameworkPaint = android.graphics.Paint().apply {
+        this.color = color.copy(alpha = 0.35f).toArgb()
+        maskFilter = BlurMaskFilter(blur.toPx(), BlurMaskFilter.Blur.NORMAL)
     }
-    drawContent()
+    onDrawWithContent {
+        clipPath(path, clipOp = ClipOp.Difference) {
+            drawIntoCanvas { canvas ->
+                canvas.nativeCanvas.drawPath(path.asAndroidPath(), frameworkPaint)
+            }
+        }
+        drawContent()
+    }
 }
 
 @Composable

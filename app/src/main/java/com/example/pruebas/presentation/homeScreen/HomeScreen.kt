@@ -41,7 +41,7 @@ fun HomeScreen(
             ),
             modifier = Modifier.fillMaxSize()
         ) {
-            items(tickets) { uiModel ->
+            items(tickets, key = { it.ticket.id }) { uiModel ->
                 TicketUI(
                     uiModel = uiModel,
                     onClick = onClick

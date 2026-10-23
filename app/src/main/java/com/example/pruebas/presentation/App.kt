@@ -1,5 +1,6 @@
 package com.example.pruebas.presentation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
@@ -31,31 +32,37 @@ import com.example.pruebas.presentation.jackpotScreen.JackpotScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-private const val duration = 700
+private const val duration = 350
 private val fadeTransitionMetadata = metadata {
     put(NavDisplay.TransitionKey) {
         slideInHorizontally(
-            initialOffsetX =  { it },
-            animationSpec = tween(duration))  togetherWith
+            initialOffsetX = { it },
+            animationSpec = tween(duration, easing = FastOutSlowInEasing)
+        ) togetherWith
                 slideOutHorizontally(
-                    targetOffsetX =  { -it },
-                    animationSpec = tween(duration))
+                    targetOffsetX = { -it / 3 },
+                    animationSpec = tween(duration, easing = FastOutSlowInEasing)
+                )
     }
     put(NavDisplay.PopTransitionKey) {
         slideInHorizontally(
-            initialOffsetX =  { -it },
-            animationSpec = tween(duration)) togetherWith
+            initialOffsetX = { -it / 3 },
+            animationSpec = tween(duration, easing = FastOutSlowInEasing)
+        ) togetherWith
                 slideOutHorizontally(
-                    targetOffsetX =  { it },
-                    animationSpec = tween(duration))
+                    targetOffsetX = { it },
+                    animationSpec = tween(duration, easing = FastOutSlowInEasing)
+                )
     }
     put(NavDisplay.PredictivePopTransitionKey) {
         slideInHorizontally(
-            initialOffsetX =  { -it },
-            animationSpec = tween(duration)) togetherWith
+            initialOffsetX = { -it / 3 },
+            animationSpec = tween(duration, easing = FastOutSlowInEasing)
+        ) togetherWith
                 slideOutHorizontally(
-                    targetOffsetX =  { it },
-                    animationSpec = tween(duration))
+                    targetOffsetX = { it },
+                    animationSpec = tween(duration, easing = FastOutSlowInEasing)
+                )
     }
 }
 

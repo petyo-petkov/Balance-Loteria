@@ -20,13 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import com.example.pruebas.data.toCurrencyFormat
 import java.util.Locale
-import java.util.Locale.getDefault
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -78,12 +75,11 @@ fun JackpotScreen(
                         contentPadding = PaddingValues(12.dp),
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        items(jackpotState.jackpots) { item ->
+                        items(jackpotState.jackpots, key = { it.nombre }) { item ->
 
                             JackpotCard(
                                 nombre = item.nombre,
                                 fechaCierre = item.fechaCierre,
-                                estado = item.estado,
                                 jackpot = item.jackpot,
                                 dia = item.dia
                             )
@@ -100,7 +96,6 @@ fun JackpotScreen(
 fun JackpotCard(
     nombre: String,
     fechaCierre: String,
-    estado: String,
     jackpot: String,
     dia: String
 ) {

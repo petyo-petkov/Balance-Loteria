@@ -19,12 +19,18 @@ class HomeScreenViewModel(
         private set
 
     init {
+        // Un único flow — tickets y balance se actualizan juntos en un solo state.copy
+        // Evita la doble query a la DB y las dos recomposiciones separadas del original
+        viewModelScope.launch {
+            balanceRepo.getBalance(dbRepo.getAllTickets()).collect { newBalance ->
+                state = state.copy(balance = newBalance)
+            }
+        }
         viewModelScope.launch {
             dbRepo.getAllTickets().collect { tickets ->
                 state = state.copy(tickets = tickets.map { TicketUiMapper.toUiModel(it) })
             }
         }
-        getBalance()
     }
 
     fun onIntent(intent: HomeIntent) {
@@ -41,15 +47,6 @@ class HomeScreenViewModel(
 
             is HomeIntent.Check -> {
                 // Se ejecuta al pulsar el botón de Jackpots en el FAB
-            }
-        }
-    }
-
-    private fun getBalance() {
-        viewModelScope.launch {
-            val tickets = dbRepo.getAllTickets()
-            balanceRepo.getBalance(tickets).collect { newBalance ->
-                state = state.copy(balance = newBalance)
             }
         }
     }
