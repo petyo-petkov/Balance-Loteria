@@ -18,14 +18,13 @@ if (localPropertiesFile.exists()) {
     localProperties.load(localPropertiesFile.inputStream())
 }
 
-val lotteryApiKey = localProperties.getProperty("LOTTERY_API_KEY") ?: ""
 
 android {
     namespace = "com.example.pruebas"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.example.lottery42v2"
+        applicationId = "com.example.balanceloteria"
         minSdk = 30
         targetSdk = 35
         versionCode = 1
@@ -34,17 +33,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        debug {
-            buildConfigField("String", "LOTTERY_API_KEY", "\"$lotteryApiKey\"")
-        }
-        release {
-            optimization {
-                enable = false
-            }
-            buildConfigField("String", "LOTTERY_API_KEY", "\"$lotteryApiKey\"")
-        }
-    }
+   
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11

@@ -22,6 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Lottery42.v2"
+rootProject.name = "Balance Loteria"
 include(":app")
  
