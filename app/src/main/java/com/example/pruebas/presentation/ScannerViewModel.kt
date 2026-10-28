@@ -6,18 +6,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.pruebas.data.ticketFromBarCode
-import com.example.pruebas.data.ticketFromQrCode
-import com.example.pruebas.domain.LotteryDatabaseRepo
+import com.example.pruebas.domain.ProcessScannedTicketUseCase
+import com.example.pruebas.domain.ScanTicketResult
 import com.example.pruebas.domain.ScannerRepo
-import com.example.pruebas.domain.WebViewRepo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class ScannerViewModel(
     private val scannerRepo: ScannerRepo,
-    private val webViewRepo: WebViewRepo,
-    private val dbRepo: LotteryDatabaseRepo
+    private val processScannedTicketUseCase: ProcessScannedTicketUseCase
 ) : ViewModel() {
 
     var state by mutableStateOf(ScannerUiState())
@@ -31,27 +28,26 @@ class ScannerViewModel(
 
     private fun startScanning() {
         viewModelScope.launch(Dispatchers.IO) {
-            state = state.copy(isScanning = true, error = null)
+            state = state.copy(isScanning = true, error = null, message = null)
             scannerRepo.startScann().collect { data ->
                 if (!data.isNullOrBlank()) {
-                    try {
-                        if (data.length > 20) {
-                            val qrTicket = ticketFromQrCode(data, webViewRepo)
-                            dbRepo.createTicket(qrTicket)
-                            Log.d("startScanning", "Ticket QR: $qrTicket")
-                        } else if (data.length == 20) {
-                            val barcodeTicket = ticketFromBarCode(data, webViewRepo)
-                            dbRepo.createTicket(barcodeTicket)
-                            Log.d("startScanning", "Ticket BarCode: $barcodeTicket")
-                        } else {
-                            state = state.copy(error = "Error al crear el ticket")
+                    when (val result = processScannedTicketUseCase(data)) {
+                        is ScanTicketResult.Success -> {
+                            Log.d("startScanning", "Ticket guardado: ${result.ticket}")
+                            state = state.copy(isScanning = false, message = "Boleto guardado con éxito")
                         }
-
-                        state = state.copy(isScanning = false)
-                    } catch (e: Exception) {
-                        Log.e("startScanning", "Error procesando boleto", e)
-                        state =
-                            state.copy(isScanning = false, error = "Error al procesar el boleto")
+                        is ScanTicketResult.AlreadyExists -> {
+                            Log.d("startScanning", "Ticket ya existía: ${result.ticket.id}")
+                            state = state.copy(isScanning = false, message = "Este boleto ya estaba registrado")
+                        }
+                        is ScanTicketResult.InvalidCode -> {
+                            Log.w("startScanning", "Código no válido: ${result.message}")
+                            state = state.copy(isScanning = false, error = result.message)
+                        }
+                        is ScanTicketResult.Error -> {
+                            Log.e("startScanning", "Error procesando boleto: ${result.message}")
+                            state = state.copy(isScanning = false, error = result.message)
+                        }
                     }
                 } else {
                     state = state.copy(isScanning = false)

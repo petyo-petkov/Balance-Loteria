@@ -24,7 +24,9 @@ import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanner
 import com.google.mlkit.vision.codescanner.GmsBarcodeScannerOptions
 import com.google.mlkit.vision.codescanner.GmsBarcodeScanning
+import com.example.pruebas.domain.ProcessScannedTicketUseCase
 import org.koin.core.module.Module
+import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
@@ -55,6 +57,10 @@ val viewModelModule = module {
     viewModelOf(::JackpotScreenViewModel)
     viewModel { [ticketId: String] -> DetailViewModel(ticketId = ticketId, webViewRepo = get(), dbRepo = get()) }
     viewModel { [ticketId: String] -> ExtraDetailViewModel(ticketId = ticketId, webViewRepo = get(), dbRepo = get()) }
+}
+
+val useCaseModule = module {
+    factoryOf(::ProcessScannedTicketUseCase)
 }
 
 val repositoryModule = module {

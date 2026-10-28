@@ -18,7 +18,7 @@ interface LotteryDAO {
     fun getById(id: String): Flow<TicketEntity?>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insert(lotteryEntity: TicketEntity)
+    suspend fun insert(lotteryEntity: TicketEntity): Long
 
     @Update
     suspend fun update(lotteryEntity: TicketEntity)

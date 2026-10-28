@@ -3,7 +3,6 @@ package com.example.pruebas.data
 import com.example.pruebas.data.network.webView.MissingInfoLNAC
 import com.example.pruebas.domain.LotteryGame
 import com.example.pruebas.domain.Ticket
-import com.example.pruebas.domain.WebViewRepo
 
 fun parse(rawData: String): Map<String, String> {
     return try {
@@ -29,20 +28,35 @@ fun parse(rawData: String): Map<String, String> {
     }
 }
 
-suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket {
+fun getGameFromQr(rawData: String): LotteryGame {
+    val pairs = parse(rawData)
+    return LotteryGame.fromPValue(pairs["P"])
+}
+
+fun getNumeroSorteoFromQr(rawData: String): String? {
+    val pairs = parse(rawData)
+    return pairs["S"]?.take(3)
+}
+
+fun ticketFromQrCode(rawData: String, missingInfo: MissingInfoLNAC? = null): Ticket? {
     return try {
         val pairs = parse(rawData)
+        if (pairs.isEmpty()) return null
 
-        val id = pairs["A"] ?: rawData
+        val id = pairs["A"]
+        if (id.isNullOrBlank()) return null
+
+        val pValue = pairs["P"] ?: return null
+        val game = LotteryGame.fromPValue(pValue)
+        if (game is LotteryGame.Unknown) return null
+
         val numeroSorteo = pairs["S"]?.take(3) ?: ""
         val cdc = pairs["A"]?.take(5) ?: ""
         val gameStatus = pairs["W"] ?: ""
         val office = pairs["T"] ?: ""
         val fecha = pairs["S"]?.substringBefore(":")?.takeLast(7)?.toStoreDate() ?: ""
-        val sorteosJugados = pairs["S"]?.substringAfter(":")?.toInt() ?: 1
-        
-        val game = LotteryGame.fromPValue(pairs["P"])
-        
+        val sorteosJugados = pairs["S"]?.substringAfter(":")?.toIntOrNull() ?: 1
+
         val rawBets = pairs["bets"]?.removeSurrounding("[", "]")
             ?.split(",")
             ?: emptyList()
@@ -57,8 +71,6 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
         var numLottery: String? = ""
         var serie: String? = ""
         var fraccion: String? = ""
-        var missingInfo: MissingInfoLNAC? = null
-
 
         when (game) {
             is LotteryGame.Primitiva -> {
@@ -102,12 +114,10 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
             }
 
             is LotteryGame.Nacional -> {
-                missingInfo = webViewRepo.getMissingInfoLNAC(numeroSorteo)
                 numLottery = pairs["N"]
                 serie = pairs["SE"]
                 fraccion = pairs["F"]
             }
-            else -> {}
         }
 
         val isMultiple = game.isMultiple(
@@ -150,7 +160,7 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
 
         Ticket(
             id = id,
-            idSorteo = "${cdc}${game.apiId}$numeroSorteo",
+            idSorteo = if (game is LotteryGame.Nacional && !info?.idSorteo.isNullOrBlank()) info.idSorteo else "${cdc}${game.apiId}$numeroSorteo",
             gameId = game.type,
             name = game.name,
             numeroSorteo = numeroSorteo,
@@ -178,7 +188,6 @@ suspend fun ticketFromQrCode(rawData: String, webViewRepo: WebViewRepo): Ticket 
         )
     } catch (e: Exception) {
         android.util.Log.e("TicketFromQr", "Error mapping ticket from QR", e)
-        Ticket(id = rawData, name = "Boleto Desconocido")
+        null
     }
 }
-

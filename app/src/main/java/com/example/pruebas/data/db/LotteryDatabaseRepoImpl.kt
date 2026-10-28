@@ -22,9 +22,10 @@ class LotteryDatabaseRepoImpl(
         return ticket.map { it?.toDomain() ?: Ticket() }
     }
 
-    override suspend fun createTicket(ticket: Ticket) {
-        withContext(Dispatchers.IO) {
-            dao.insert(ticket.toEntity())
+    override suspend fun createTicket(ticket: Ticket): Boolean {
+        return withContext(Dispatchers.IO) {
+            val rowId = dao.insert(ticket.toEntity())
+            rowId != -1L
         }
     }
 

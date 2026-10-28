@@ -8,7 +8,7 @@ interface LotteryDatabaseRepo {
 
     fun getTicketById(id: String) : Flow<Ticket>
 
-    suspend fun createTicket(ticket: Ticket)
+    suspend fun createTicket(ticket: Ticket): Boolean
 
     suspend fun updateTicket(ticket: Ticket)
 

@@ -5,6 +5,7 @@ import com.example.pruebas.di.databaseModule
 import com.example.pruebas.di.networkModule
 import com.example.pruebas.di.repositoryModule
 import com.example.pruebas.di.scannerModule
+import com.example.pruebas.di.useCaseModule
 import com.example.pruebas.di.viewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -19,6 +20,7 @@ class MyApplication : Application() {
             androidContext(this@MyApplication)
             modules(
                 scannerModule,
+                useCaseModule,
                 viewModelModule,
                 repositoryModule,
                 databaseModule,

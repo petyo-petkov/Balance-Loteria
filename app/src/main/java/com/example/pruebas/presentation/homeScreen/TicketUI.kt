@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
+import com.example.pruebas.data.parsePrize
 import com.example.pruebas.data.toDisplayDate
 import com.example.pruebas.domain.Ticket
 
@@ -95,7 +96,10 @@ fun TicketUI(
                     val prizeTextColor = when (uiModel.prizeStatus) {
                         PrizeStatus.NO_PRIZE -> MaterialTheme.colorScheme.error
                         PrizeStatus.WINNER -> Color(0xFF388E3C)
-                        PrizeStatus.UNKNOWN -> MaterialTheme.colorScheme.onSurfaceVariant
+                        PrizeStatus.UNKNOWN -> {
+                            if (ticket.prize.parsePrize() > 0.0) Color(0xFF388E3C)
+                            else MaterialTheme.colorScheme.onSurfaceVariant
+                        }
                     }
                     Fila(
                         text = "${ticket.prize} €",

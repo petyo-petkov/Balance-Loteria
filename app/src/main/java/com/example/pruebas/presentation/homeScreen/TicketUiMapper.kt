@@ -8,8 +8,14 @@ import com.example.pruebas.domain.Ticket
 object TicketUiMapper {
     fun toUiModel(ticket: Ticket): TicketUiModel {
         val prizeValue = ticket.prize.parsePrize()
+        val isFullyChecked = if (ticket.sorteosJugados > 1) {
+            ticket.sorteosComprobados >= ticket.sorteosJugados
+        } else {
+            ticket.isChecked
+        }
+
         val status = when {
-            !ticket.isChecked -> PrizeStatus.UNKNOWN
+            !isFullyChecked -> PrizeStatus.UNKNOWN
             prizeValue == 0.0 -> PrizeStatus.NO_PRIZE
             else -> PrizeStatus.WINNER
         }
