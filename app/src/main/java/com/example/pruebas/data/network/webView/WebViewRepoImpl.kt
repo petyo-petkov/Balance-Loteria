@@ -269,11 +269,14 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
             val proximosList = getInfoAllGames(proximosUrl)
 
             val celebradosUrl = urlCelebradosForGame(game)
-            val celebradosList = if (celebradosUrl.isNotBlank()) getInfoAllGames(celebradosUrl) else emptyList()
+            val celebradosList =
+                if (celebradosUrl.isNotBlank()) getInfoAllGames(celebradosUrl) else emptyList()
 
             val allDraws = (celebradosList + proximosList)
                 .distinctBy { it.getString("id_sorteo") ?: it.getString("drawId") }
-                .sortedBy { (it.getString("id_sorteo") ?: it.getString("drawId"))?.toLongOrNull() ?: 0L }
+                .sortedBy {
+                    (it.getString("id_sorteo") ?: it.getString("drawId"))?.toLongOrNull() ?: 0L
+                }
 
             val firstDrawId = ticket.idSorteo
             val index = allDraws.indexOfFirst { json ->
@@ -318,14 +321,15 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
             else -> { _ -> "" }
         }
 
-        val ultimoSorteoIdLong: Long? = if (drawIds.size > 1 || drawIds.first().toLongOrNull() != null) {
-            try {
-                getUltimoSorteoIdLong(game)
-            } catch (e: Exception) {
-                Log.e("getPremios", "Error obteniendo último sorteo celebrado", e)
-                null
-            }
-        } else null
+        val ultimoSorteoIdLong: Long? =
+            if (drawIds.size > 1 || drawIds.first().toLongOrNull() != null) {
+                try {
+                    getUltimoSorteoIdLong(game)
+                } catch (e: Exception) {
+                    Log.e("getPremios", "Error obteniendo último sorteo celebrado", e)
+                    null
+                }
+            } else null
 
         var totalPremio = 0.0
         var hasCheckedAtLeastOne = false
@@ -334,7 +338,10 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         for (drawId in drawIds) {
             val drawIdLong = drawId.toLongOrNull()
             if (ultimoSorteoIdLong != null && drawIdLong != null && drawIdLong > ultimoSorteoIdLong) {
-                Log.i("getPremios", "Sorteo $drawId ($drawIdLong) es posterior al último celebrado ($ultimoSorteoIdLong), omitiendo.")
+                Log.i(
+                    "getPremios",
+                    "Sorteo $drawId ($drawIdLong) es posterior al último celebrado ($ultimoSorteoIdLong), omitiendo."
+                )
                 continue
             }
 
@@ -369,7 +376,10 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
         val numDecimo = ticket.numDecimo
         val idSorteo = ticket.idSorteo
 
-        val url = if (!numDecimo.isNullOrBlank()) urlPremioLNACPorNumero(numeroLoteria = numDecimo, idSorteo = idSorteo) else ""
+        val url = if (!numDecimo.isNullOrBlank()) urlPremioLNACPorNumero(
+            numeroLoteria = numDecimo,
+            idSorteo = idSorteo
+        ) else ""
         if (url.isBlank()) return "0.0"
         val data = getInfoAllGames(url)
         return data.firstOrNull()?.getString("premioEnCentimos") ?: "0.0"
@@ -387,7 +397,9 @@ class WebViewRepoImpl(private val webView: WebView) : WebViewRepo {
     ): List<T> = when {
         rawStr.startsWith("[") -> json.decodeFromString<List<T>>(rawStr)
         rawStr.startsWith("{") -> listOf(json.decodeFromString<T>(rawStr))
-        else -> { onUnknownFormat(); emptyList() }
+        else -> {
+            onUnknownFormat(); emptyList()
+        }
     }
 }
 

@@ -53,7 +53,7 @@ class DetailViewModel(
         loadTicketJob?.cancel()
         state = DetailUiState()
 
-        loadTicketJob = viewModelScope.launch {
+        loadTicketJob = viewModelScope.launch(Dispatchers.IO) {
             dbRepo.getTicketById(ticketId).collect { ticket ->
                 state = state.copy(ticketUiModel = TicketUiMapper.toUiModel(ticket))
             }

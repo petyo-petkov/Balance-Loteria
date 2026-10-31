@@ -98,7 +98,7 @@ val networkModule = module {
                 blockNetworkImage = true
                 cacheMode = WebSettings.LOAD_NO_CACHE
                 mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
-            }
+             }
             visibility = View.INVISIBLE
             setLayerType(View.LAYER_TYPE_NONE, null)
         }

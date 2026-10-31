@@ -27,8 +27,8 @@ android {
         applicationId = "com.example.balanceloteria"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -50,6 +50,16 @@ android {
         kotlinCompilerExtensionVersion = "1.1.1"
     }
 
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
 
 
 }

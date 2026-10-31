@@ -34,7 +34,7 @@ import com.example.pruebas.presentation.jackpotScreen.JackpotScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
 
-private const val duration = 350
+private const val duration = 300
 
 private val slideTransitionMetadata = metadata {
     put(NavDisplay.TransitionKey) {
